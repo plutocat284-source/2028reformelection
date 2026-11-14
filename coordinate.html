@@ -1,3 +1,573 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6da13337b9b2221707c3b16434167354afb008e0288eb6c8814c8b46af5ece59
-size 12090
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지도 다각형 좌표 추출기</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Malgun Gothic', sans-serif;
+    background: #f1f2f4;
+    color: #222;
+    padding: 25px;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+h1 {
+    font-size: 27px;
+    margin-bottom: 10px;
+}
+
+.description {
+    color: #777;
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-bottom: 15px;
+}
+
+button, .file-label {
+    border: none;
+    padding: 12px 17px;
+    border-radius: 7px;
+    background: #FF7210;
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+button.secondary {
+    background: #27364d;
+}
+
+button.gray {
+    background: #777;
+}
+
+button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+#imageInput {
+    display: none;
+}
+
+.status {
+    background: white;
+    padding: 13px 16px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 13px;
+    color: #555;
+}
+
+.map-panel {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.06);
+}
+
+.map-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: #fff;
+    cursor: crosshair;
+    touch-action: manipulation;
+}
+
+#mapImage {
+    width: 100%;
+    height: auto;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+}
+
+#drawingSvg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.vertex {
+    fill: #FF7210;
+    stroke: white;
+    stroke-width: 5;
+    vector-effect: non-scaling-stroke;
+}
+
+.vertex-number {
+    fill: #17243A;
+    font-size: 35px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: central;
+    paint-order: stroke;
+    stroke: white;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+}
+
+.polygon-line {
+    fill: rgba(255,114,16,.15);
+    stroke: #FF7210;
+    stroke-width: 5;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.preview-line {
+    fill: none;
+    stroke: #17243A;
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+    vector-effect: non-scaling-stroke;
+}
+
+.result-panel {
+    margin-top: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.result-panel h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.result-panel textarea {
+    width: 100%;
+    height: 150px;
+    padding: 13px;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    resize: vertical;
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.point-count {
+    font-weight: 900;
+    color: #FF7210;
+    margin-bottom: 12px;
+}
+
+.help {
+    color: #888;
+    font-size: 12px;
+    line-height: 1.7;
+    margin-top: 12px;
+}
+
+@media(max-width:600px) {
+    body {
+        padding: 12px;
+    }
+
+    h1 {
+        font-size: 21px;
+    }
+
+    button, .file-label {
+        padding: 11px;
+        font-size: 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>지도 다각형 좌표 추출기</h1>
+
+    <p class="description">
+        지도에서 경계선을 따라 클릭해 점을 찍으세요.
+        마지막 점까지 찍은 후 다각형 완성 버튼을 누르면
+        이미지 원본 픽셀 기준 좌표가 생성됩니다.
+    </p>
+
+    <div class="toolbar">
+        <label class="file-label" for="imageInput">
+            지도 이미지 불러오기
+        </label>
+        <input type="file" id="imageInput" accept="image/*">
+
+        <button onclick="undoPoint()" class="secondary">
+            점 되돌리기
+        </button>
+
+        <button onclick="finishPolygon()">
+            다각형 완성
+        </button>
+
+        <button onclick="resetPolygon()" class="gray">
+            초기화
+        </button>
+    </div>
+
+    <div class="status" id="status">
+        먼저 지도 이미지를 불러와 주세요.
+    </div>
+
+    <div class="map-panel">
+        <div class="map-wrapper" id="mapWrapper">
+
+            <img id="mapImage" alt="지도 이미지">
+
+            <svg id="drawingSvg">
+                <polygon id="completedPolygon"
+                         class="polygon-line"
+                         points=""
+                         style="display:none"/>
+
+                <polyline id="previewLine"
+                          class="preview-line"
+                          points=""/>
+
+                <g id="vertexGroup"></g>
+            </svg>
+
+        </div>
+    </div>
+
+    <div class="result-panel">
+
+        <h2>추출된 좌표</h2>
+
+        <div class="point-count" id="pointCount">
+            0개 점
+        </div>
+
+        <textarea id="coordinateOutput"
+                  readonly
+                  placeholder="다각형을 완성하면 좌표가 여기에 표시됩니다."></textarea>
+
+        <div class="toolbar" style="margin-top:12px">
+            <button onclick="copyCoordinates()">
+                좌표 복사
+            </button>
+
+            <button class="secondary"
+                    onclick="copyPolygonCode()">
+                SVG 코드 복사
+            </button>
+        </div>
+
+        <p class="help">
+            ※ 좌표는 업로드한 이미지의 원본 픽셀 크기를 기준으로 생성됩니다.<br>
+            ※ 시뮬레이터의 SVG viewBox도 같은 이미지 크기로 설정해야 합니다.<br>
+            ※ 다각형을 완성한 후 초기화하면 새로운 지역의 좌표를 추출할 수 있습니다.
+        </p>
+
+    </div>
+
+</div>
+
+<script>
+const imageInput = document.getElementById("imageInput");
+const mapImage = document.getElementById("mapImage");
+const mapWrapper = document.getElementById("mapWrapper");
+const svg = document.getElementById("drawingSvg");
+
+const polygon = document.getElementById("completedPolygon");
+const previewLine = document.getElementById("previewLine");
+const vertexGroup = document.getElementById("vertexGroup");
+
+const output = document.getElementById("coordinateOutput");
+const statusText = document.getElementById("status");
+
+let points = [];
+let completed = false;
+let mousePosition = null;
+
+/* 지도 이미지 불러오기 */
+
+imageInput.addEventListener("change", event => {
+
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = e => {
+
+        mapImage.onload = () => {
+
+            const width = mapImage.naturalWidth;
+            const height = mapImage.naturalHeight;
+
+            svg.setAttribute(
+                "viewBox",
+                `0 0 ${width} ${height}`
+            );
+
+            resetPolygon();
+
+            statusText.textContent =
+                `이미지 크기: ${width} × ${height}px | 지도 위에서 점을 찍어 주세요.`;
+
+        };
+
+        mapImage.src = e.target.result;
+
+    };
+
+    reader.readAsDataURL(file);
+
+});
+
+/* 지도 클릭 */
+
+mapWrapper.addEventListener("click", event => {
+
+    if (!mapImage.src || completed) return;
+
+    const rect = mapImage.getBoundingClientRect();
+
+    const x = (event.clientX - rect.left)
+        * mapImage.naturalWidth / rect.width;
+
+    const y = (event.clientY - rect.top)
+        * mapImage.naturalHeight / rect.height;
+
+    points.push({
+        x: Math.round(x),
+        y: Math.round(y)
+    });
+
+    renderPoints();
+
+});
+
+/* 점 및 다각형 그리기 */
+
+function renderPoints() {
+
+    const pointString = points
+        .map(p => `${p.x},${p.y}`)
+        .join(" ");
+
+    previewLine.setAttribute("points", pointString);
+
+    vertexGroup.innerHTML = points.map((p, index) => `
+
+        <circle
+            class="vertex"
+            cx="${p.x}"
+            cy="${p.y}"
+            r="10"
+        />
+
+        <text
+            class="vertex-number"
+            x="${p.x}"
+            y="${p.y - 23}"
+        >${index + 1}</text>
+
+    `).join("");
+
+    document.getElementById("pointCount").textContent =
+        `${points.length}개 점`;
+
+    if (completed) {
+        polygon.setAttribute("points", pointString);
+        polygon.style.display = "block";
+    } else {
+        polygon.style.display = "none";
+    }
+
+    updateOutput();
+
+    if (!completed) {
+        statusText.textContent =
+            `${points.length}개 점을 찍었습니다. 경계선을 따라 계속 클릭하세요.`;
+    }
+
+}
+
+/* 마지막 점 미리보기 */
+
+mapWrapper.addEventListener("mousemove", event => {
+
+    if (completed || points.length === 0) return;
+
+    const rect = mapImage.getBoundingClientRect();
+
+    const x = Math.round(
+        (event.clientX - rect.left)
+        * mapImage.naturalWidth / rect.width
+    );
+
+    const y = Math.round(
+        (event.clientY - rect.top)
+        * mapImage.naturalHeight / rect.height
+    );
+
+    mousePosition = {x, y};
+
+    const previewPoints = [
+        ...points.map(p => `${p.x},${p.y}`),
+        `${x},${y}`
+    ];
+
+    previewLine.setAttribute(
+        "points",
+        previewPoints.join(" ")
+    );
+
+});
+
+/* 점 되돌리기 */
+
+function undoPoint() {
+
+    if (completed || points.length === 0) return;
+
+    points.pop();
+
+    renderPoints();
+
+}
+
+/* 다각형 완성 */
+
+function finishPolygon() {
+
+    if (points.length < 3) {
+        alert("다각형을 완성하려면 최소 3개의 점이 필요합니다.");
+        return;
+    }
+
+    completed = true;
+
+    renderPoints();
+
+    statusText.textContent =
+        `다각형 완성! 총 ${points.length}개 좌표가 추출되었습니다.`;
+
+}
+
+/* 초기화 */
+
+function resetPolygon() {
+
+    points = [];
+    completed = false;
+    mousePosition = null;
+
+    polygon.style.display = "none";
+    polygon.setAttribute("points", "");
+
+    previewLine.setAttribute("points", "");
+    vertexGroup.innerHTML = "";
+
+    output.value = "";
+
+    document.getElementById("pointCount").textContent =
+        "0개 점";
+
+    if (mapImage.src) {
+        statusText.textContent =
+            "초기화 완료. 새로운 다각형을 그려 주세요.";
+    }
+
+}
+
+/* 좌표 출력 */
+
+function updateOutput() {
+
+    const result = points
+        .map(p => `${p.x},${p.y}`)
+        .join(" ");
+
+    output.value = result;
+
+}
+
+/* 좌표 복사 */
+
+async function copyCoordinates() {
+
+    if (!completed) {
+        alert("먼저 다각형을 완성해 주세요.");
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(output.value);
+        alert("좌표를 복사했습니다!");
+    } catch {
+        output.select();
+        document.execCommand("copy");
+        alert("좌표를 복사했습니다!");
+    }
+
+}
+
+/* SVG 코드 복사 */
+
+async function copyPolygonCode() {
+
+    if (!completed) {
+        alert("먼저 다각형을 완성해 주세요.");
+        return;
+    }
+
+    const width = mapImage.naturalWidth;
+    const height = mapImage.naturalHeight;
+
+    const code = `<svg viewBox="0 0 ${width} ${height}">
+    <polygon
+        class="map-hotspot region-1"
+        points="${output.value}"
+        onclick="selectRegion(1)"
+        onmouseenter="previewRegion(1)"
+        onmouseleave="restoreMap()"
+    />
+</svg>`;
+
+    try {
+        await navigator.clipboard.writeText(code);
+        alert("SVG 코드를 복사했습니다!");
+    } catch {
+        output.value = code;
+        output.select();
+        document.execCommand("copy");
+        alert("SVG 코드를 복사했습니다!");
+    }
+
+}
+</script>
+
+</body>
+</html>
