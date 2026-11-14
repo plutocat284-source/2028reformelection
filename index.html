@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#FF7210">
+<title>2028 개혁신당 총선 시뮬레이터</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --orange: #FF7210;
+    --navy: #101B35;
+    --light: #F5F6F8;
+}
+
+body {
+    font-family: 'Malgun Gothic', '맑은 고딕',
+                 Arial, sans-serif;
+    color: #222;
+    background: #fff;
+    min-height: 100vh;
+}
+
+/* 헤더 */
+
+header {
+    width: 100%;
+    height: 76px;
+    background: white;
+    display: flex;
+    align-items: center;
+    padding: 0 7%;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.logo img {
+    width: 220px;
+    max-height: 70px;
+    object-fit: contain;
+}
+
+/* 페이지 */
+
+.page {
+    display: none;
+    min-height: calc(100vh - 76px);
+    opacity: 0;
+}
+
+/* 당대표 선택 콘텐츠 */
+
+#leader .container {
+    padding-top: 65px;
+}
+
+/* 제목 */
+
+#leader .section-title {
+    color: white;
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 40px;
+    letter-spacing: -2px;
+}
+
+/* 기존 안내 문구 숨기기 */
+
+#leader .section-label,
+#leader .section-description {
+    display: none;
+}
+
+/* 후보 카드 */
+
+#leader .leader-card {
+    background: white;
+    border: 3px solid white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+/* 선택된 카드 */
+
+#leader .leader-card.selected {
+    border: 3px solid var(--orange);
+    box-shadow: 0 0 0 3px white,
+                0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* 후보 설명창 */
+
+#leader .description-panel {
+    background: white;
+    border: 2px solid var(--orange);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    color: #222;
+}
+
+.page.active {
+    display: block;
+    animation: pageFadeIn 0.55s ease forwards;
+}
+
+/* 첫 화면 */
+#home {
+    min-height: calc(100vh - 76px);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 50px 20px;
+    background: transparent;
+}
+
+#home.active {
+    display: flex;
+    animation: pageFadeIn 0.7s ease forwards;
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.home-content {
+    animation: appear 0.8s ease;
+}
+
+.home-title {
+    font-size: clamp(38px, 6vw, 76px);
+    font-weight: 900;
+    line-height: 1.35;
+    letter-spacing: -3px;
+    margin-bottom: 42px;
+    text-shadow: 0 3px 15px rgba(0,0,0,0.3);
+}
+
+.start-button {
+    border: none;
+    border-radius: 50px;
+    padding: 19px 55px;
+    background: var(--orange);
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.25s;
+    box-shadow: 0 8px 25px rgba(255,114,16,0.35);
+}
+
+.start-button:hover {
+    background: #e95e00;
+    transform: translateY(-3px);
+}
+
+/* 공통 콘텐츠 */
+
+.container {
+    max-width: 1100px;
+    width: 90%;
+    margin: 0 auto;
+    padding: 65px 0 75px;
+}
+
+.section-label {
+    color: var(--orange);
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+.section-title {
+    font-size: 35px;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    margin-bottom: 12px;
+}
+
+.section-description {
+    color: #777;
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 38px;
+}
+
+/* 당대표 카드 */
+
+.leader-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.leader-card {
+    background: white;
+    border: 2px solid #e9e9e9;
+    border-radius: 15px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.leader-card:hover {
+    transform: translateY(-5px);
+    border-color: #ffb17d;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+}
+
+.leader-card.selected {
+    border: 3px solid var(--orange);
+    box-shadow: 0 5px 25px rgba(255,114,16,0.15);
+}
+
+.leader-image {
+    width: 100%;
+    aspect-ratio: 4 / 4.2;
+    object-fit: cover;
+    display: block;
+    background: #eee;
+}
+
+.leader-info {
+    padding: 20px;
+    text-align: center;
+}
+
+.leader-name {
+    font-size: 19px;
+    font-weight: 900;
+}
+
+.leader-sub {
+    color: #999;
+    font-size: 13px;
+    margin-top: 7px;
+}
+
+/* 설명 창 */
+
+.description-panel {
+    display: none;
+    background: #fff8f3;
+    border: 1px solid #ffddc7;
+    border-radius: 14px;
+    padding: 25px;
+    margin-top: 28px;
+    animation: appear 0.3s ease;
+}
+
+.description-panel.show {
+    display: block;
+}
+
+.description-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 12px;
+}
+
+.description-name {
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.description-text {
+    color: #555;
+    line-height: 1.8;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.select-button {
+    background: var(--orange);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.select-button:hover {
+    background: #e95e00;
+}
+
+/* 경쟁 정당 */
+
+.party-list {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    margin-bottom: 35px;
+}
+
+.party-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    background: white;
+    transition: 0.2s;
+}
+
+.party-item:hover {
+    border-color: #ffc49f;
+}
+
+.party-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.party-image {
+    width: 95px;
+    height: 58px;
+    object-fit: contain;
+}
+
+.party-name {
+    font-size: 17px;
+    font-weight: 800;
+}
+
+/* 토글 */
+
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 55px;
+    height: 29px;
+    flex-shrink: 0;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: #ccc;
+    border-radius: 30px;
+    transition: 0.25s;
+}
+
+.toggle-slider::before {
+    content: "";
+    position: absolute;
+    width: 21px;
+    height: 21px;
+    left: 4px;
+    bottom: 4px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.25s;
+}
+
+.toggle input:checked + .toggle-slider {
+    background: var(--orange);
+}
+
+.toggle input:checked + .toggle-slider::before {
+    transform: translateX(26px);
+}
+
+/* 하단 버튼 */
+
+.bottom-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 40px;
+}
+
+.back-button {
+    border: 1px solid #ddd;
+    background: white;
+    color: #555;
+    padding: 15px 28px;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.next-button {
+    border: none;
+    background: var(--orange);
+    color: white;
+    padding: 16px 48px;
+    border-radius: 9px;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.next-button:hover {
+    background: #e95e00;
+}
+
+/* 푸터 */
+
+footer {
+    background: var(--navy);
+    color: white;
+    padding: 30px 7%;
+    min-height: 125px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.footer-logo {
+    width: 115px;
+    max-height: 45px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.footer-text {
+    font-size: 11px;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.8);
+}
+
+/* 애니메이션 */
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 모바일 */
+
+@media(max-width:700px) {
+    header {
+        height: 65px;
+        padding: 0 5%;
+    }
+
+    .logo img {
+        width: 120px;
+    }
+
+    .page {
+        min-height: calc(100vh - 65px);
+    }
+
+    #home {
+        min-height: calc(100vh - 65px);
+    }
+
+    .home-title {
+        letter-spacing: -2px;
+    }
+
+    .container {
+        padding: 45px 0 55px;
+        width: 92%;
+    }
+
+    .section-title {
+        font-size: 27px;
+    }
+
+    .leader-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .leader-card {
+        display: flex;
+        align-items: center;
+    }
+
+    .leader-image {
+        width: 115px;
+        height: 120px;
+        aspect-ratio: auto;
+    }
+
+    .leader-info {
+        flex: 1;
+        text-align: left;
+    }
+
+    .party-item {
+        padding: 14px;
+    }
+
+    .party-image {
+        width: 72px;
+        height: 48px;
+    }
+
+    .party-left {
+        gap: 12px;
+    }
+
+    .party-name {
+        font-size: 14px;
+    }
+
+    .bottom-actions {
+        flex-wrap: wrap;
+    }
+
+    .next-button {
+        flex: 1;
+    }
+
+#leader .section-title {
+    font-size: 36px;
+    text-align: center;
+}
+
+}
+
+/* 음악 버튼 */
+
+#musicToggle {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 1000;
+
+    background: white;
+    color: #FF7210;
+    border: 2px solid #FF7210;
+    border-radius: 30px;
+
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 800;
+
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    transition: 0.2s;
+}
+
+#musicToggle:hover {
+    background: #FF7210;
+    color: white;
+}
+
+.page.active {
+    display: block;
+    animation: pageFadeIn 0.55s ease forwards;
+}
+
+#home.active {
+    display: flex;
+    animation: pageFadeIn 0.55s ease forwards;
+}
+
+.page.fade-out {
+    animation: pageFadeOut 0.35s ease forwards;
+    pointer-events: none;
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pageFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* 콘텐츠 위치 */
+#parties .container {
+    padding-top: 65px;
+}
+
+/* 제목 */
+#parties .section-title {
+    color: white;
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 40px;
+    letter-spacing: -2px;
+}
+
+/* STEP 문구와 설명 숨기기 */
+#parties .section-label,
+#parties .section-description {
+    display: none;
+}
+
+/* 경쟁정당 카드 */
+#parties .party-item {
+    background: white;
+    border: 2px solid white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+/* 모바일 */
+@media(max-width:700px) {
+    #parties .section-title {
+        font-size: 36px;
+        text-align: center;
+    }
+}
+
+/* 경쟁정당 목록 */
+#parties .party-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    max-width: 750px;
+    margin: 0 auto;
+}
+
+/* 기존 박스 제거 */
+#parties .party-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+
+    padding: 10px 20px;
+}
+
+/* 정당 이미지 */
+#parties .party-image {
+    width: 300px;
+    height: 110px;
+    object-fit: contain;
+    display: block;
+    background: transparent;
+}
+
+/* 스위치 크기 */
+#parties .toggle {
+    width: 68px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+#parties .toggle-slider {
+    border-radius: 30px;
+}
+
+#parties .toggle-slider::before {
+    width: 28px;
+    height: 28px;
+}
+
+#parties .toggle input:checked + .toggle-slider::before {
+    transform: translateX(32px);
+}
+
+/* 모바일 */
+@media(max-width:700px) {
+    #parties .party-list {
+        gap: 18px;
+    }
+
+    #parties .party-item {
+        padding: 8px 5px;
+    }
+
+    #parties .party-image {
+        width: 220px;
+        height: 85px;
+    }
+
+    #parties .toggle {
+        width: 58px;
+        height: 32px;
+    }
+
+    #parties .toggle-slider::before {
+        width: 24px;
+        height: 24px;
+    }
+
+    #parties .toggle input:checked + .toggle-slider::before {
+        transform: translateX(26px);
+    }
+}
+
+/* =================================
+   공통 랠리 배경 슬라이드
+================================= */
+
+body {
+    font-family: 'Malgun Gothic', '맑은 고딕',
+                 Arial, sans-serif;
+    color: #222;
+    background: #222;
+    min-height: 100vh;
+}
+
+#rallyBackground {
+    position: fixed;
+    inset: 76px 0 0 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background: #222;
+}
+
+.rally-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 2.5s ease-in-out;
+}
+
+.rally-layer.active {
+    opacity: 1;
+}
+
+.page {
+    position: relative;
+    z-index: 1;
+}
+
+footer {
+    position: relative;
+    z-index: 1;
+}
+
+header {
+    position: relative;
+    z-index: 10;
+}
+
+#home,
+#leader,
+#parties {
+    background: transparent;
+}
+
+/* 화면별 어두운 오버레이 */
+#rallyBackground::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.48);
+}
+
+@media(max-width:700px) {
+    #rallyBackground {
+        top: 65px;
+    }
+}
+
+
+/* =================================
+   지역 전략 선택 화면
+================================= */
+
+#strategy .container {
+    padding-top: 65px;
+}
+
+#strategy .section-title {
+    color: white;
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 40px;
+    letter-spacing: -2px;
+}
+
+.strategy-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+.strategy-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: white;
+    border: 3px solid white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.strategy-card:hover {
+    transform: translateY(-5px);
+    border-color: #ffb17d;
+}
+
+.strategy-card.selected {
+    border: 3px solid var(--orange);
+    box-shadow: 0 0 0 3px white,
+                0 10px 30px rgba(0,0,0,0.35);
+}
+
+.strategy-image {
+    width: 125px;
+    height: 110px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.strategy-info {
+    flex: 1;
+}
+
+.strategy-name {
+    font-size: 19px;
+    font-weight: 900;
+    color: #222;
+    margin-bottom: 9px;
+}
+
+.strategy-sub {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #777;
+}
+
+#strategy .description-panel {
+    margin-top: 30px;
+}
+
+#strategy .description-panel.show {
+    display: block;
+}
+
+@media(max-width:700px) {
+    #strategy .section-title {
+        font-size: 36px;
+        text-align: center;
+    }
+
+    .strategy-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .strategy-card {
+        padding: 13px;
+        gap: 15px;
+    }
+
+    .strategy-image {
+        width: 100px;
+        height: 90px;
+    }
+
+    .strategy-name {
+        font-size: 16px;
+    }
+
+    .strategy-sub {
+        font-size: 12px;
+    }
+}
+
+
+/* 지역 전략 카드 목록 */
+
+.strategy-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 지역 전략 카드 */
+.strategy-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 3px solid white;
+    border-radius: 15px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: 0.25s;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+.strategy-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--orange);
+}
+
+/* 상단 가로 이미지 */
+
+.strategy-image {
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    display: block;
+    background: #f3f3f3;
+}
+
+
+/* 하단 텍스트 */
+.strategy-info {
+    padding: 23px;
+    text-align: left;
+}
+
+.strategy-name {
+    font-size: 23px;
+    font-weight: 900;
+    color: #222;
+    margin-bottom: 12px;
+}
+
+.strategy-description {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #666;
+}
+
+/* 선택된 카드 */
+.strategy-card.selected {
+    border: 3px solid var(--orange);
+    box-shadow: 0 0 0 3px white,
+                0 10px 30px rgba(0,0,0,0.35);
+}
+
+
+@media(max-width:700px) {
+    .strategy-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .strategy-image {
+        height: 130px;
+    }
+
+    .strategy-info {
+        padding: 13px;
+    }
+
+    .strategy-name {
+        font-size: 16px;
+    }
+
+    .strategy-description {
+        font-size: 12px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <a class="logo" href="index.html">
+        <img src="reform.png" alt="개혁신당">
+    </a>
+</header>
+<!-- 공통 랠리 배경 -->
+<div id="rallyBackground">
+    <img src="rally.png"
+         class="rally-layer active"
+         id="rallyA"
+         alt="">
+
+    <img src="rally2.png"
+         class="rally-layer"
+         id="rallyB"
+         alt="">
+</div>
+
+<!-- 첫 화면 -->
+
+<section id="home" class="page active">
+    <div class="home-content">
+        <h1 class="home-title">
+            2028 개혁신당<br>
+            총선 시뮬레이터
+        </h1>
+
+        <button class="start-button" onclick="showPage('leader')">
+            시뮬레이터 시작
+        </button>
+    </div>
+</section>
+
+<!-- 당대표 결정 -->
+
+<section id="leader" class="page">
+    <div class="container">
+
+<h2 class="section-title">당대표 선택</h2>
+        <div class="leader-grid">
+
+            <div class="leader-card" id="leaderCard1"
+                 onclick="showLeader(1)">
+                <img src="leader1.png" class="leader-image"
+                     alt="당대표 후보 1">
+                <div class="leader-info">
+                    <div class="leader-name">"함께 갑시다. 새로운 미래로."</div>
+                    <div class="leader-sub">前 개혁신당 비상대책위원장</div>
+                </div>
+            </div>
+
+            <div class="leader-card" id="leaderCard2"
+                 onclick="showLeader(2)">
+                <img src="leader2.png" class="leader-image"
+                     alt="당대표 후보 2">
+                <div class="leader-info">
+                    <div class="leader-name">"여의도에 갇혀버린 정치."</div>
+                    <div class="leader-sub">現 개혁신당 원내대표</div>
+                </div>
+            </div>
+
+            <div class="leader-card" id="leaderCard3"
+                 onclick="showLeader(3)">
+                <img src="leader3.png" class="leader-image"
+                     alt="당대표 후보 3">
+                <div class="leader-info">
+                    <div class="leader-name">"압도적 새로움. 새로운 정치 문법."</div>
+                    <div class="leader-sub">前 개혁신당 당대표</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 후보 설명 -->
+
+        <div class="description-panel" id="descriptionPanel">
+
+            <div class="description-header">
+                <div class="description-name" id="descriptionName">
+                    후보
+                </div>
+            </div>
+
+            <p class="description-text" id="descriptionText"></p>
+
+            <button class="select-button"
+                    onclick="confirmLeader()">
+                선택하기 →
+            </button>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- 경쟁 정당 설정 -->
+
+<section id="parties" class="page">
+    <div class="container">
+
+        <div class="section-label">STEP 02 · COMPETITORS</div>
+
+        <h2 class="section-title">경쟁정당 설정</h2>
+
+        <p class="section-description">
+            이번 총선에 참여할 경쟁정당을 설정하세요.
+            ON으로 설정된 정당만 시뮬레이터에 등장합니다.
+        </p>
+
+  <div class="party-list">
+
+    <div class="party-item">
+        <img src="party1.png" class="party-image" alt="경쟁정당 1">
+        <label class="toggle">
+            <input type="checkbox" id="party1" checked>
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+
+    <div class="party-item">
+        <img src="party2.png" class="party-image" alt="경쟁정당 2">
+        <label class="toggle">
+            <input type="checkbox" id="party2" checked>
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+
+    <div class="party-item">
+        <img src="party3.png" class="party-image" alt="경쟁정당 3">
+        <label class="toggle">
+            <input type="checkbox" id="party3" checked>
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+
+    <div class="party-item">
+        <img src="party4.png" class="party-image" alt="경쟁정당 4">
+        <label class="toggle">
+            <input type="checkbox" id="party4" checked>
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+
+</div>
+
+        <div class="bottom-actions">
+
+            <button class="back-button"
+                    onclick="showPage('leader')">
+                ← 이전 단계
+            </button>
+
+<button class="next-button"
+        onclick="goToStrategy()">
+    다음 단계 →
+</button>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- 지역 전략 선택 -->
+<section id="strategy" class="page">
+    <div class="container">
+
+        <h2 class="section-title">지역 전략 선택</h2>
+
+
+<div class="strategy-grid">
+
+    <div class="strategy-card" onclick="showStrategy('north')">
+        <img src="north.png" class="strategy-image" alt="북부 전략">
+        <div class="strategy-info">
+            <div class="strategy-name">경기 북부 전략</div>
+            <p class="strategy-description">
+                김포 · 고양 · 파주 · 양주 · 동두천 · 연천 · 의정부 · 포천 · 가평 · 남양주 · 구리 · 하남 · 양평
+            </p>
+        </div>
+    </div>
+
+    <div class="strategy-card" onclick="showStrategy('south')">
+        <img src="south.png" class="strategy-image" alt="남부 전략">
+        <div class="strategy-info">
+            <div class="strategy-name">경기 남부 전략</div>
+            <p class="strategy-description">
+                부천 · 광명 · 시흥 · 안산 · 안양 · 과천 · 의왕 · 군포 · 수원 · 화성 · 오산 · 평택 · 성남 · 광주 · 용인 · 안성 · 이천 · 여주
+            </p>
+        </div>
+    </div>
+
+    <div class="strategy-card" onclick="showStrategy('seoul')">
+        <img src="seoul.png" class="strategy-image" alt="서울 전략">
+        <div class="strategy-info">
+            <div class="strategy-name">한강 벨트 전략</div>
+            <p class="strategy-description">
+                강서 · 마포 · 영등포 · 동작 · 용산 · 서초 · 강남 · 성동 · 광진 · 송파 · 강동
+            </p>
+        </div>
+    </div>
+
+    <div class="strategy-card" onclick="showStrategy('korea')">
+        <img src="korea.png" class="strategy-image" alt="전국 전략">
+        <div class="strategy-info">
+            <div class="strategy-name">비례대표 전략</div>
+            <p class="strategy-description">
+                수도권 · 강원도 · 충청권 · 대경권 · 동남권 · 호남제주권
+            </p>
+        </div>
+    </div>
+
+</div>
+
+        <!-- 선택한 전략 설명 -->
+        <div class="description-panel" id="strategyDescriptionPanel">
+
+            <div class="description-header">
+                <div class="description-name" id="strategyDescriptionName">
+                    전략을 선택해주세요
+                </div>
+            </div>
+
+            <p class="description-text" id="strategyDescriptionText">
+                위의 네 가지 전략 중 하나를 선택하면 상세 설명이 표시됩니다.
+            </p>
+
+            <button class="select-button"
+                    onclick="confirmStrategy()">
+                전략 선택하기 →
+            </button>
+
+        </div>
+
+        <div class="bottom-actions">
+            <button class="back-button"
+                    onclick="showPage('parties')">
+                ← 이전 단계
+            </button>
+        </div>
+
+    </div>
+</section>
+
+<!-- 푸터 -->
+
+<footer>
+    <img src="reform.png" class="footer-logo" alt="개혁신당">
+    <div class="footer-text">
+        2028 개혁신당 총선 시뮬레이터<br>
+        제작자: 오정훈
+    </div>
+</footer>
+
+<script>
+
+// 현재 선택한 당대표
+let selectedLeader = null;
+
+// 당대표 정보
+// 실제 후보 이름과 설명은 이 부분에서 변경
+
+const leaders = {
+    1: {
+        name: "이기인",
+        description:
+            "개발 중."
+    },
+
+    2: {
+        name: "천하람",
+        description:
+            "개발 중."
+    },
+
+    3: {
+        name: "이준석",
+        description:
+            "설명."
+    }
+};
+
+
+// 화면 전환 및 시뮬레이터 기능
+function showPage(pageId) {
+    const currentPage = document.querySelector('.page.active');
+    const nextPage = document.getElementById(pageId);
+
+    if (!nextPage || currentPage === nextPage) return;
+
+    if (currentPage) {
+        currentPage.classList.add('fade-out');
+
+        setTimeout(() => {
+            currentPage.classList.remove('active', 'fade-out');
+            nextPage.classList.add('active');
+        }, 350);
+    } else {
+        nextPage.classList.add('active');
+    }
+
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+// 당대표 선택
+function showLeader(number) {
+    document.querySelectorAll('.leader-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    const selectedCard = document.getElementById('leaderCard' + number);
+
+    if (!selectedCard) return;
+
+    selectedCard.classList.add('selected');
+    selectedLeader = number;
+
+    document.getElementById('descriptionName').textContent =
+        leaders[number].name;
+
+    document.getElementById('descriptionText').textContent =
+        leaders[number].description;
+
+    const descriptionPanel = document.getElementById('descriptionPanel');
+    descriptionPanel.classList.add('show');
+
+    setTimeout(() => {
+        descriptionPanel.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest'
+        });
+    }, 100);
+}
+
+// 당대표 확정
+function confirmLeader() {
+    if (!selectedLeader) {
+        alert('당대표를 선택해주세요.');
+        showPage('leader');
+        return;
+    }
+
+    showPage('parties');
+}
+
+// 경쟁정당 설정 저장 후 지역 전략 화면으로 이동
+function goToStrategy() {
+    if (!selectedLeader) {
+        alert('당대표를 먼저 선택해주세요.');
+        showPage('leader');
+        return;
+    }
+
+    const partySettings = {
+        party1: document.getElementById('party1').checked,
+        party2: document.getElementById('party2').checked,
+        party3: document.getElementById('party3').checked,
+        party4: document.getElementById('party4').checked
+    };
+
+    localStorage.setItem('reformSelectedLeader', selectedLeader);
+    localStorage.setItem(
+        'reformPartySettings',
+        JSON.stringify(partySettings)
+    );
+
+    showPage('strategy');
+}
+
+// 선택한 전략
+let selectedStrategy = null;
+
+// 전략 정보
+const strategies = {
+    north: {
+        name: '경기 북부 전략',
+        description: '안보 전략과 경제 특구 개발로 경기 북부를 살려내자.'
+    },
+
+    south: {
+        name: '경기 남부 전략',
+        description: '경기도 남부에서 새로운 개혁의 바람을 불러일으키자.'
+    },
+
+    seoul: {
+        name: '한강 벨트 전략',
+        description: '서울의 한강을 중심으로 새로운 보수를 개척해내자.'
+    },
+
+    korea: {
+        name: '비례대표 전략',
+        description: '전국 단위의 지지율을 올려 비례대표를 최대한 가져가자.'
+    }
+};
+
+// 전략 카드 선택
+function showStrategy(strategyId) {
+    if (!strategies[strategyId]) return;
+
+    document.querySelectorAll('.strategy-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    const selectedCard = document.getElementById(
+        'strategyCard' +
+        strategyId.charAt(0).toUpperCase() +
+        strategyId.slice(1)
+    );
+
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
+    }
+
+    selectedStrategy = strategyId;
+
+    document.getElementById('strategyDescriptionName').textContent =
+        strategies[strategyId].name;
+
+    document.getElementById('strategyDescriptionText').textContent =
+        strategies[strategyId].description;
+
+    document.getElementById('strategyDescriptionPanel')
+        .classList.add('show');
+
+    setTimeout(() => {
+        document.getElementById('strategyDescriptionPanel')
+            .scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+    }, 100);
+}
+
+// 전략 확정
+function confirmStrategy() {
+    if (!selectedStrategy) {
+        alert('지역 전략을 선택해주세요.');
+        return;
+    }
+
+    localStorage.setItem('reformSelectedStrategy', selectedStrategy);
+
+    // 남부 전략 선택 시 sim3.html 실행
+    if (selectedStrategy === 'south') {
+        window.location.href = 'sim3.html';
+        return;
+    }
+
+    alert('이 전략은 너무 위험하다. 조금 더 고민해보자.');
+}
+
+/* =================================
+   랠리 배경 자동 슬라이드
+================================= */
+
+const rallySlides = [
+    "rally.png",
+    "rally2.png",
+    "rally3.png",
+    "rally4.png"
+];
+
+const rallyA = document.getElementById("rallyA");
+const rallyB = document.getElementById("rallyB");
+
+let rallyIndex = 0;
+let rallyShowingA = true;
+
+function changeRallyBackground() {
+    const nextIndex = (rallyIndex + 1) % rallySlides.length;
+
+    const nextLayer = rallyShowingA ? rallyB : rallyA;
+    const currentLayer = rallyShowingA ? rallyA : rallyB;
+
+    const nextSrc = rallySlides[nextIndex];
+    const preload = new Image();
+
+    preload.onload = () => {
+        nextLayer.src = nextSrc;
+
+        requestAnimationFrame(() => {
+            nextLayer.classList.add("active");
+            currentLayer.classList.remove("active");
+        });
+
+        rallyIndex = nextIndex;
+        rallyShowingA = !rallyShowingA;
+    };
+
+    preload.onerror = () => {
+        console.error("랠리 이미지 로드 실패:", nextSrc);
+    };
+
+    preload.src = nextSrc;
+}
+
+// 7초 간격으로 이미지 전환
+setInterval(changeRallyBackground, 7000);
+</script>
+
+
+<!-- 배경음악 -->
+<audio id="backgroundMusic" loop preload="auto">
+    <source src="bgm.mp3" type="audio/mpeg">
+</audio>
+
+<!-- 음악 버튼 -->
+<button id="musicToggle" type="button" onclick="toggleMusic()">
+    ♫ 음악 켜기
+</button>
+
+
+<!-- 배경음악 제어 -->
+<script>
+let bgm = null;
+let musicButton = null;
+
+// 페이지 로드
+document.addEventListener('DOMContentLoaded', () => {
+    bgm = document.getElementById('backgroundMusic');
+    musicButton = document.getElementById('musicToggle');
+
+    if (!bgm || !musicButton) return;
+
+    bgm.volume = 0.25;
+
+    // 이전 페이지의 음악 재생 상태 복원
+    const wasPlaying =
+        sessionStorage.getItem('reformBgmPlaying') === 'true';
+
+    const savedTime = Number(
+        sessionStorage.getItem('reformBgmTime') || 0
+    );
+
+    bgm.addEventListener('loadedmetadata', () => {
+        if (savedTime > 0 && Number.isFinite(savedTime)) {
+            bgm.currentTime = savedTime;
+        }
+    }, { once: true });
+
+    if (bgm.readyState >= 1 && savedTime > 0) {
+        bgm.currentTime = savedTime;
+    }
+
+    if (wasPlaying) {
+        bgm.play().then(() => {
+            musicButton.textContent = '♫ 음악 끄기';
+        }).catch(() => {
+            musicButton.textContent = '♫ 다시 재생';
+        });
+    }
+});
+
+// 음악 켜기 / 끄기
+async function toggleMusic() {
+    if (!bgm || !musicButton) return;
+
+    if (bgm.paused) {
+        try {
+            await bgm.play();
+            musicButton.textContent = '♫ 음악 끄기';
+
+            sessionStorage.setItem('reformBgmPlaying', 'true');
+        } catch (error) {
+            console.error('음악 재생 오류:', error);
+            musicButton.textContent = '♫ 다시 재생';
+        }
+    } else {
+        bgm.pause();
+        musicButton.textContent = '♫ 음악 켜기';
+
+        sessionStorage.setItem('reformBgmPlaying', 'false');
+    }
+}
+
+// 다른 페이지로 이동하기 전 재생 상태 저장
+window.addEventListener('pagehide', () => {
+    if (!bgm) return;
+
+    sessionStorage.setItem(
+        'reformBgmPlaying',
+        String(!bgm.paused)
+    );
+
+    sessionStorage.setItem(
+        'reformBgmTime',
+        String(bgm.currentTime)
+    );
+});
+</script>
+
+</body>
+</html>
