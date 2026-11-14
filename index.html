@@ -1515,94 +1515,60 @@ setInterval(changeRallyBackground, 7000);
 </script>
 
 
+
 <!-- 배경음악 -->
-<audio id="backgroundMusic" loop preload="auto">
-    <source src="bgm.mp3" type="audio/mpeg">
-</audio>
+<audio id="backgroundMusic" src="./bgm.mp3" loop preload="auto"></audio>
 
 <!-- 음악 버튼 -->
 <button id="musicToggle" type="button" onclick="toggleMusic()">
     ♫ 음악 켜기
 </button>
 
-
 <!-- 배경음악 제어 -->
 <script>
-let bgm = null;
-let musicButton = null;
+const bgm = document.getElementById('backgroundMusic');
+const musicButton = document.getElementById('musicToggle');
 
-// 페이지 로드
-document.addEventListener('DOMContentLoaded', () => {
-    bgm = document.getElementById('backgroundMusic');
-    musicButton = document.getElementById('musicToggle');
+// 음악 파일 로드 오류 확인
+bgm.addEventListener('error', () => {
+    const errorCode = bgm.error ? bgm.error.code : '알 수 없음';
 
-    if (!bgm || !musicButton) return;
+    musicButton.textContent = '♫ 음악 오류';
 
-    bgm.volume = 0.25;
-
-    // 이전 페이지의 음악 재생 상태 복원
-    const wasPlaying =
-        sessionStorage.getItem('reformBgmPlaying') === 'true';
-
-    const savedTime = Number(
-        sessionStorage.getItem('reformBgmTime') || 0
-    );
-
-    bgm.addEventListener('loadedmetadata', () => {
-        if (savedTime > 0 && Number.isFinite(savedTime)) {
-            bgm.currentTime = savedTime;
-        }
-    }, { once: true });
-
-    if (bgm.readyState >= 1 && savedTime > 0) {
-        bgm.currentTime = savedTime;
-    }
-
-    if (wasPlaying) {
-        bgm.play().then(() => {
-            musicButton.textContent = '♫ 음악 끄기';
-        }).catch(() => {
-            musicButton.textContent = '♫ 다시 재생';
-        });
-    }
+    console.error('배경음악 로드 실패:', {
+        source: bgm.currentSrc,
+        errorCode: errorCode,
+        error: bgm.error
+    });
 });
 
-// 음악 켜기 / 끄기
+// 음악 재생
 async function toggleMusic() {
     if (!bgm || !musicButton) return;
 
     if (bgm.paused) {
         try {
             await bgm.play();
+
+            bgm.volume = 0.25;
             musicButton.textContent = '♫ 음악 끄기';
 
-            sessionStorage.setItem('reformBgmPlaying', 'true');
         } catch (error) {
-            console.error('음악 재생 오류:', error);
+            console.error('음악 재생 실패:', error);
+
             musicButton.textContent = '♫ 다시 재생';
+
+            alert(
+                '음악 재생에 실패했습니다.\n' +
+                '오류: ' + error.name + '\n' +
+                '메시지: ' + error.message
+            );
         }
     } else {
         bgm.pause();
         musicButton.textContent = '♫ 음악 켜기';
-
-        sessionStorage.setItem('reformBgmPlaying', 'false');
     }
 }
-
-// 다른 페이지로 이동하기 전 재생 상태 저장
-window.addEventListener('pagehide', () => {
-    if (!bgm) return;
-
-    sessionStorage.setItem(
-        'reformBgmPlaying',
-        String(!bgm.paused)
-    );
-
-    sessionStorage.setItem(
-        'reformBgmTime',
-        String(bgm.currentTime)
-    );
-});
 </script>
 
 </body>
